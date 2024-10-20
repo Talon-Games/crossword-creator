@@ -2,6 +2,7 @@ pub mod creator;
 pub mod display;
 pub mod setup;
 
+use crate::creator::generate_crossword;
 use crate::setup::ask_for_config;
 
 fn main() {
@@ -11,4 +12,6 @@ fn main() {
     println!("Press \"esc\" at any time to exit the program.");
     println!("");
     let config = ask_for_config();
+
+    generate_crossword(&config);
 }
