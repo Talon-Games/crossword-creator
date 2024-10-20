@@ -36,7 +36,10 @@ impl BoardDetails {
 
 pub fn generate_crossword(config: &Config) {
     let board_details = get_board_details(&config.board, config.width, config.height);
-
+    if board_details.total_words == 0 {
+        eprintln!("Crossword layout must have room for at least 1 word");
+        std::process::exit(1);
+    }
     board_details.display();
 }
 
@@ -58,8 +61,8 @@ fn get_board_details(board: &Vec<Vec<Square>>, width: i32, height: i32) -> Board
                         if current_word_len > longest_word {
                             longest_word = current_word_len;
                         }
-                        current_word_len = 0;
                     }
+                    current_word_len = 0;
                 }
                 _ => {
                     current_word_len += 1;
@@ -85,8 +88,8 @@ fn get_board_details(board: &Vec<Vec<Square>>, width: i32, height: i32) -> Board
                         if current_word_len > longest_word {
                             longest_word = current_word_len;
                         }
-                        current_word_len = 0;
                     }
+                    current_word_len = 0;
                 }
                 _ => {
                     current_word_len += 1;

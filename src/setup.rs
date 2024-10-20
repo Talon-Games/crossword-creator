@@ -33,8 +33,8 @@ impl Config {
 }
 
 pub fn ask_for_config() -> Config {
-    let width = NumberInput::new().message("Width: ").min(1).max(50).ask();
-    let height = NumberInput::new().message("Height: ").min(1).max(50).ask();
+    let width = NumberInput::new().message("Width: ").min(2).max(50).ask();
+    let height = NumberInput::new().message("Height: ").min(2).max(50).ask();
 
     let mut config = Config::new(width, height);
 
@@ -99,7 +99,6 @@ fn ask_for_board_template(config: &mut Config) {
                     if selector_y > 0 {
                         selector_y -= 1;
                     } else {
-                        println!("{} {}", selector_y, config.height - 1);
                         selector_y = (config.height - 1) as usize;
                     }
                 }
