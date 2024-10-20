@@ -1,5 +1,3 @@
-use std::usize;
-
 use crate::setup::Config;
 
 #[derive(Clone, Copy)]
@@ -41,6 +39,8 @@ pub fn generate_crossword(config: &Config) {
         std::process::exit(1);
     }
     board_details.display();
+
+    let word_list = load_word_list(board_details.longest_word, config);
 }
 
 fn get_board_details(board: &Vec<Vec<Square>>, width: i32, height: i32) -> BoardDetails {
@@ -105,4 +105,47 @@ fn get_board_details(board: &Vec<Vec<Square>>, width: i32, height: i32) -> Board
     }
 
     BoardDetails::new(longest_word, horizontal_words, vertical_words)
+}
+
+fn load_word_list(longest_word: i32, config: &Config) -> Vec<&str> {
+    let mut word_list: Vec<&str> = Vec::new();
+
+    if config.use_english_words {
+        let english_words_file = include_str!("./data/words.txt");
+
+        let words: Vec<&str> = english_words_file
+            .lines()
+            .filter(|line| {
+                // only allows words withg definitions if thats what user wants
+                if config.only_words_with_defs
+                    && line.trim().split("::").collect::<Vec<&str>>()[1]
+                        .trim()
+                        .len()
+                        == 0
+                {
+                    return false;
+                }
+                return true;
+            })
+            .map(|line| line.trim().split("::").collect::<Vec<&str>>()[0].trim())
+            .filter(|line| !line.is_empty() && line.len() <= longest_word as usize)
+            .collect();
+
+        word_list.extend(words);
+    }
+
+    // all Latin words have a definition with them
+    if config.use_latin_words {
+        let latin_words_file = include_str!("./data/latin_words.txt");
+
+        let words: Vec<&str> = latin_words_file
+            .lines()
+            .map(|line| line.trim().split("::").collect::<Vec<&str>>()[0].trim())
+            .filter(|line| !line.is_empty() && line.len() <= longest_word as usize)
+            .collect();
+
+        word_list.extend(words);
+    }
+
+    word_list
 }

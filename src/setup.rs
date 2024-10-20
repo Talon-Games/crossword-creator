@@ -13,7 +13,6 @@ pub struct Config {
     pub use_english_words: bool,
     pub use_latin_words: bool,
     pub only_words_with_defs: bool,
-    pub use_defs_as_hints: bool,
     pub board: Vec<Vec<Square>>,
 }
 
@@ -26,7 +25,6 @@ impl Config {
             use_english_words: true,
             use_latin_words: false,
             only_words_with_defs: true,
-            use_defs_as_hints: false,
             board,
         }
     }
@@ -49,15 +47,6 @@ pub fn ask_for_config() -> Config {
     let only_words_with_defs = Choice::new()
         .message("Only use words with definitions?")
         .ask();
-
-    if only_words_with_defs == true {
-        let use_defs_as_hints = Choice::new()
-            .message("Use definitions as hints?")
-            .default_no()
-            .ask();
-
-        config.use_defs_as_hints = use_defs_as_hints;
-    }
 
     config.use_english_words = use_english_words;
     config.use_latin_words = use_latin_words;
