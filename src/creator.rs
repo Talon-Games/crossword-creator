@@ -1,3 +1,4 @@
+use crate::display::board::print_board;
 use crate::setup::Config;
 
 #[derive(Clone, Copy)]
@@ -5,6 +6,17 @@ pub enum Square {
     Solid,
     Empty,
     Letter(char),
+}
+
+impl Square {
+    pub fn value(&self) -> Option<String> {
+        match self {
+            Square::Letter(letter) => {
+                return Some(letter.to_string());
+            }
+            _ => return None,
+        }
+    }
 }
 
 pub struct BoardDetails {
@@ -32,7 +44,43 @@ impl BoardDetails {
     }
 }
 
-pub fn generate_crossword(config: &Config) {
+pub struct CrosswordBuilder<'a> {
+    board_history: Vec<Vec<Vec<Square>>>,
+    word_list: Vec<&'a str>,
+}
+
+impl<'a> CrosswordBuilder<'a> {
+    pub fn new(board: &Vec<Vec<Square>>, word_list: Vec<&'a str>) -> CrosswordBuilder<'a> {
+        CrosswordBuilder {
+            board_history: vec![board.to_vec()],
+            word_list,
+        }
+    }
+
+    pub fn is_full(&self) -> bool {
+        for row in &self.board_history[self.board_history.len() - 1] {
+            for square in row {
+                match square {
+                    Square::Empty => return false,
+                    _ => continue,
+                }
+            }
+        }
+
+        return true;
+    }
+
+    pub fn display(&self, width: i32) {
+        print_board(
+            &self.board_history[self.board_history.len() - 1],
+            width,
+            None,
+            None,
+        );
+    }
+}
+
+pub fn generate_crossword(config: Config) {
     let board_details = get_board_details(&config.board, config.width, config.height);
     if board_details.total_words == 0 {
         eprintln!("Crossword layout must have room for at least 1 word");
@@ -40,7 +88,11 @@ pub fn generate_crossword(config: &Config) {
     }
     board_details.display();
 
-    let word_list = load_word_list(board_details.longest_word, config);
+    let word_list = load_word_list(board_details.longest_word, &config);
+
+    let mut crossword_builder = CrosswordBuilder::new(&config.board, word_list);
+
+    crossword_builder.display(config.width);
 }
 
 fn get_board_details(board: &Vec<Vec<Square>>, width: i32, height: i32) -> BoardDetails {

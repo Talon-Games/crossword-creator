@@ -13,5 +13,5 @@ fn main() {
     println!("");
     let config = ask_for_config();
 
-    generate_crossword(&config);
+    generate_crossword(config);
 }

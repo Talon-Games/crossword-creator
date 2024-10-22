@@ -1,3 +1,4 @@
+use crate::display::board::print_board;
 use std::usize;
 
 use crate::creator::Square;
@@ -63,7 +64,12 @@ fn ask_for_board_template(config: &mut Config) {
     println!("Press enter to toggle a black box");
     println!("Press \"s\" to save");
 
-    let rows = print_board(config, selector_x, selector_y);
+    let rows = print_board(
+        &config.board,
+        config.width,
+        Some(selector_x),
+        Some(selector_y),
+    );
     let full_clear = rows + 2;
     loop {
         terminal::enable_raw_mode().expect("Failed to enable raw mode");
@@ -122,43 +128,11 @@ fn ask_for_board_template(config: &mut Config) {
         }
         terminal::disable_raw_mode().expect("Failed to disable raw mode");
         refresh_display(rows);
-        print_board(&config, selector_x, selector_y);
+        print_board(
+            &config.board,
+            config.width,
+            Some(selector_x),
+            Some(selector_y),
+        );
     }
-}
-
-fn print_board(config: &Config, selector_x: usize, selector_y: usize) -> i32 {
-    let mut rows = 0;
-    print_border(config.width as usize);
-    rows += 1;
-
-    for (y, row) in config.board.iter().enumerate() {
-        print!("|");
-        for (x, square) in row.into_iter().enumerate() {
-            let display_char = match square {
-                Square::Empty => &' ',
-                Square::Solid => &'#',
-                Square::Letter(letter) => &letter,
-            };
-            if selector_x == x && selector_y == y {
-                print!("[{}]|", display_char);
-            } else {
-                print!(" {} |", display_char);
-            }
-        }
-        println!();
-
-        rows += 1;
-        print_border(config.width as usize);
-        rows += 1;
-    }
-
-    rows
-}
-
-fn print_border(length: usize) {
-    print!("+");
-    for _ in 0..length {
-        print!("---+");
-    }
-    println!();
 }

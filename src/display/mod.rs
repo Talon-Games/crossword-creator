@@ -1,3 +1,4 @@
+pub mod board;
 pub mod choice;
 pub mod number_input;
 
