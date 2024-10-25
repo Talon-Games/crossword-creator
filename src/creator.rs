@@ -1,4 +1,5 @@
 use crate::display::board::print_board;
+use crate::display::refresh_display;
 use crate::setup::Config;
 
 #[derive(Clone, Copy)]
@@ -70,13 +71,15 @@ impl<'a> CrosswordBuilder<'a> {
         return true;
     }
 
-    pub fn display(&self, width: i32) {
+    pub fn place_word(&mut self) {}
+
+    pub fn display(&self, width: i32) -> i32 {
         print_board(
             &self.board_history[self.board_history.len() - 1],
             width,
             None,
             None,
-        );
+        )
     }
 }
 
@@ -92,7 +95,14 @@ pub fn generate_crossword(config: Config) {
 
     let mut crossword_builder = CrosswordBuilder::new(&config.board, word_list);
 
-    crossword_builder.display(config.width);
+    let size = crossword_builder.display(config.width);
+
+    while !crossword_builder.is_full() {
+        crossword_builder.place_word();
+        refresh_display(size);
+        crossword_builder.display(config.width);
+        break;
+    }
 }
 
 fn get_board_details(board: &Vec<Vec<Square>>, width: i32, height: i32) -> BoardDetails {
