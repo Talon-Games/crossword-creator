@@ -85,7 +85,7 @@ fn ask_for_board_template(config: &mut Config) {
                     println!("Quitting...");
                     std::process::exit(0);
                 }
-                KeyCode::Char('s') => {
+                KeyCode::Enter => {
                     terminal::disable_raw_mode().expect("Failed to disable raw mode");
                     refresh_display(full_clear);
                     break;
@@ -118,10 +118,15 @@ fn ask_for_board_template(config: &mut Config) {
                         selector_x = 0;
                     }
                 }
-                KeyCode::Enter => match config.board[selector_y][selector_x] {
+                KeyCode::Char(' ') => match config.board[selector_y][selector_x] {
                     Square::Solid => config.board[selector_y][selector_x] = Square::Empty,
                     _ => config.board[selector_y][selector_x] = Square::Solid,
                 },
+                KeyCode::Char(char) => {
+                    if char >= 'a' && char <= 'z' {
+                        config.board[selector_y][selector_x] = Square::Letter(char);
+                    }
+                }
                 _ => {}
             },
             _ => {}

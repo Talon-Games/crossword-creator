@@ -20,6 +20,22 @@ impl Square {
     }
 }
 
+pub enum Direction {
+    Down,
+    Up,
+}
+
+pub struct Position {
+    pub x: usize,
+    pub y: usize,
+}
+
+impl Position {
+    pub fn new(x: usize, y: usize) -> Position {
+        Position { x, y }
+    }
+}
+
 pub struct BoardDetails {
     pub longest_word: i32,
     pub total_words: i32,
@@ -71,7 +87,34 @@ impl<'a> CrosswordBuilder<'a> {
         return true;
     }
 
-    pub fn place_word(&mut self) {}
+    pub fn place_word(&mut self) {
+        let word_location = self.find_empty_word();
+    }
+
+    fn find_empty_word(&self) -> Option<(Position, Direction)> {
+        let current_board = &self.board_history[self.board_history.len()];
+
+        for (y, row) in current_board.iter().enumerate() {
+            for (x, square) in row.into_iter().enumerate() {
+                match square {
+                    Square::Empty => {
+                        let position = Position::new(x, y);
+
+                        // scan down till edge or block
+                        match current_board[y + 1][x] {
+                            Square::Solid => continue,
+                            _ => {}
+                        }
+                    }
+                    _ => {
+                        continue;
+                    }
+                }
+            }
+        }
+
+        return None;
+    }
 
     pub fn display(&self, width: i32) -> i32 {
         print_board(
