@@ -1,7 +1,7 @@
-use crate::creator::Square;
+use tgg::crossword::CrosswordBox;
 
 pub fn print_board(
-    board: &Vec<Vec<Square>>,
+    board: &Vec<Vec<CrosswordBox>>,
     width: i32,
     selector_x: Option<usize>,
     selector_y: Option<usize>,
@@ -13,20 +13,14 @@ pub fn print_board(
     for (y, row) in board.iter().enumerate() {
         print!("|");
         for (x, square) in row.into_iter().enumerate() {
-            let display_char = match square {
-                Square::Empty => &' ',
-                Square::Solid => &'#',
-                Square::Letter(letter) => &letter,
-            };
-
             if selector_x.is_some() && selector_y.is_some() {
                 if selector_x.unwrap() == x && selector_y.unwrap() == y {
-                    print!("[{}]|", display_char);
+                    print!("[{}]|", square.value.to_string());
                 } else {
-                    print!(" {} |", display_char);
+                    print!(" {} |", square.value.to_string());
                 }
             } else {
-                print!(" {} |", display_char);
+                print!(" {} |", square.value.to_string());
             }
         }
         println!();

@@ -1,12 +1,12 @@
 use crate::display::board::print_board;
 use std::usize;
 
-use crate::creator::Square;
 use crate::display::{choice::Choice, number_input::NumberInput, refresh_display};
 use crossterm::{
     event::{read, Event, KeyCode, KeyEvent, KeyEventKind},
     terminal,
 };
+use tgg::crossword::{CrosswordBox, CrosswordBoxValue};
 
 pub struct Config {
     pub width: i32,
@@ -14,12 +14,20 @@ pub struct Config {
     pub use_english_words: bool,
     pub use_latin_words: bool,
     pub only_words_with_defs: bool,
-    pub board: Vec<Vec<Square>>,
+    pub board: Vec<Vec<CrosswordBox>>,
 }
 
 impl Config {
     pub fn new(width: i32, height: i32) -> Config {
-        let board: Vec<Vec<Square>> = vec![vec![Square::Empty; width as usize]; height as usize];
+        let board: Vec<Vec<CrosswordBox>> =
+            vec![
+                vec![
+                    CrosswordBox::new(0, CrosswordBoxValue::Empty)
+                        .expect("Somehow faild to crate default box");
+                    width as usize
+                ];
+                height as usize
+            ];
         Config {
             width,
             height,
@@ -36,6 +44,8 @@ pub fn ask_for_config() -> Config {
     let height = NumberInput::new().message("Height: ").min(2).max(50).ask();
 
     let mut config = Config::new(width, height);
+
+    // ask if the grid should be generated or left empty
 
     let use_english_words = Choice::new().message("Use english words?").ask();
     let use_latin_words = Choice::new().message("Use latin words?").default_no().ask();
@@ -118,13 +128,16 @@ fn ask_for_board_template(config: &mut Config) {
                         selector_x = 0;
                     }
                 }
-                KeyCode::Char(' ') => match config.board[selector_y][selector_x] {
-                    Square::Solid => config.board[selector_y][selector_x] = Square::Empty,
-                    _ => config.board[selector_y][selector_x] = Square::Solid,
+                KeyCode::Char(' ') => match config.board[selector_y][selector_x].value {
+                    CrosswordBoxValue::Solid => {
+                        config.board[selector_y][selector_x].value = CrosswordBoxValue::Empty
+                    }
+                    _ => config.board[selector_y][selector_x].value = CrosswordBoxValue::Solid,
                 },
                 KeyCode::Char(char) => {
                     if char >= 'a' && char <= 'z' {
-                        config.board[selector_y][selector_x] = Square::Letter(char);
+                        config.board[selector_y][selector_x].value =
+                            CrosswordBoxValue::Letter(char);
                     }
                 }
                 _ => {}
