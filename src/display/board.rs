@@ -2,13 +2,11 @@ use tgg::crossword::CrosswordBox;
 
 pub fn print_board(
     board: &Vec<Vec<CrosswordBox>>,
-    width: i32,
     selector_x: Option<usize>,
     selector_y: Option<usize>,
 ) -> i32 {
-    let mut rows = 0;
-    print_border(width as usize);
-    rows += 1;
+    let mut rows = 1;
+    print_border(board[0].len());
 
     for (y, row) in board.iter().enumerate() {
         print!("|");
@@ -26,7 +24,7 @@ pub fn print_board(
         println!();
 
         rows += 1;
-        print_border(width as usize);
+        print_border(board[0].len());
         rows += 1;
     }
 

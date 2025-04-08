@@ -74,12 +74,7 @@ fn ask_for_board_template(config: &mut Config) {
     println!("Press enter to toggle a black box");
     println!("Press \"s\" to save");
 
-    let rows = print_board(
-        &config.board,
-        config.width,
-        Some(selector_x),
-        Some(selector_y),
-    );
+    let rows = print_board(&config.board, Some(selector_x), Some(selector_y));
     let full_clear = rows + 2;
     loop {
         terminal::enable_raw_mode().expect("Failed to enable raw mode");
@@ -146,11 +141,6 @@ fn ask_for_board_template(config: &mut Config) {
         }
         terminal::disable_raw_mode().expect("Failed to disable raw mode");
         refresh_display(rows);
-        print_board(
-            &config.board,
-            config.width,
-            Some(selector_x),
-            Some(selector_y),
-        );
+        print_board(&config.board, Some(selector_x), Some(selector_y));
     }
 }

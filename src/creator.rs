@@ -1,4 +1,4 @@
-use crate::setup::Config;
+use crate::{display::board::print_board, setup::Config};
 use tgg::crossword::{CrosswordBox, CrosswordBoxValue};
 
 pub enum Direction {
@@ -17,8 +17,114 @@ impl Position {
     }
 }
 
-//TODO: remember to place numbers
-pub fn generate_crossword(config: Config) -> Vec<Vec<CrosswordBox>> {
+pub fn word_counter(board: &mut Vec<Vec<CrosswordBox>>) {
+    let mut horizontal_word_number: u8 = 1;
+    let mut vertical_word_number: u8 = 1;
+
+    let mut horizontal_words = 0;
+    let mut vertical_words = 0;
+
+    //TODO: do without clone
+    for (y, row) in board.clone().iter().enumerate() {
+        for (x, crossword_box) in row.iter().enumerate() {
+            match crossword_box.value {
+                CrosswordBoxValue::Solid => continue,
+                _ => (),
+            };
+
+            // Horizontal Words
+            if x == 0
+                || (board[y][x - 1].value.to_string() == "#"
+                    && (x != row.len() - 1 && board[y][x + 1].value.to_string() != "#"))
+            {
+                if board[y][x].number == 0 {
+                    if horizontal_word_number <= vertical_word_number {
+                        horizontal_word_number = vertical_word_number;
+                    }
+
+                    board[y][x].number = horizontal_word_number
+                }
+
+                horizontal_word_number += 1;
+
+                let mut full = true;
+
+                if board[y][x].value.to_string() == " " {
+                    full = false;
+                }
+
+                let mut word_len = 1;
+                let mut offset = 1;
+                loop {
+                    if x + offset > row.len() || board[y][x + offset].value.to_string() == "#" {
+                        break;
+                    }
+
+                    if board[y][x + offset].value.to_string() == " " {
+                        full = false;
+                        break;
+                    }
+                    word_len += 1;
+                    offset += 1;
+                }
+
+                if !full {
+                    horizontal_words += 1;
+                }
+            }
+
+            // Vertical Words
+            if y == 0
+                || board[y - 1][x].value.to_string() == "#"
+                    && (y != board.len() - 1 && board[y + 1][x].value.to_string() != "#")
+            {
+                if board[y][x].number == 0 {
+                    if vertical_word_number <= horizontal_word_number {
+                        vertical_word_number = horizontal_word_number;
+                        board[y][x].number = horizontal_word_number;
+                    } else {
+                        board[y][x].number = vertical_word_number
+                    }
+                }
+
+                vertical_word_number += 1;
+
+                let mut full = true;
+
+                if board[y][x].value.to_string() == " " {
+                    full = false;
+                }
+
+                let mut word_len = 1;
+                let mut offset = 1;
+
+                loop {
+                    if y + offset > board.len() || board[y + offset][x].value.to_string() == "#" {
+                        break;
+                    }
+
+                    if board[y + offset][x].value.to_string() == " " {
+                        full = false;
+                        break;
+                    }
+
+                    word_len += 1;
+                    offset += 1;
+                }
+
+                if !full {
+                    vertical_words += 1;
+                }
+            }
+        }
+    }
+}
+
+pub fn generate_crossword(mut config: Config) -> Vec<Vec<CrosswordBox>> {
+    word_counter(&mut config.board);
+
+    print_board(&config.board, None, None);
+
     return config.board;
 }
 
