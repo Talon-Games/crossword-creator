@@ -185,7 +185,7 @@ pub fn generate_crossword(mut config: Config) -> Vec<Vec<CrosswordBox>> {
         );
     }
 
-    print_board(&config.board, None, None);
+    print_board(&config.board);
 
     return config.board;
 }

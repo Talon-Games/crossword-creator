@@ -1,7 +1,7 @@
 use tgg::crossword::{CrosswordBox, CrosswordClue};
 use tgg::TggFile;
 
-use crate::display::board::{print_board, print_board_with_numbers};
+use crate::display::board::{print_board_with_numbers, print_board_with_selector};
 
 pub fn save(board: Vec<Vec<CrosswordBox>>) {
     get_hints(&board);
