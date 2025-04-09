@@ -44,23 +44,19 @@ pub fn print_board_with_numbers(board: &Vec<Vec<CrosswordBox>>) -> i32 {
     let mut rows = 1;
     print!("+");
     for _ in 0..board[0].len() {
-        print!("-----+");
+        print!("---+");
     }
     println!();
 
     for row in board.iter() {
         print!("|");
-        for square in row.iter() {
+        for square in row {
             print!(
                 " {}{} |",
                 if square.number != 0 {
-                    if square.number.to_string().len() == 1 {
-                        format!("0{}", square.number.to_string())
-                    } else {
-                        square.number.to_string()
-                    }
+                    square.number.to_string()
                 } else {
-                    "  ".to_string()
+                    " ".to_string()
                 },
                 square.value.to_string()
             );
@@ -70,7 +66,7 @@ pub fn print_board_with_numbers(board: &Vec<Vec<CrosswordBox>>) -> i32 {
         rows += 1;
         print!("+");
         for _ in 0..board[0].len() {
-            print!("-----+");
+            print!("---+");
         }
         println!();
 

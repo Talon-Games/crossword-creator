@@ -87,7 +87,7 @@ pub fn word_counter(board: &mut Vec<Vec<CrosswordBox>>) -> WordPlacements {
                 let mut word_len = 1;
                 let mut offset = 1;
                 loop {
-                    if x + offset > row.len() || board[y][x + offset].value.to_string() == "#" {
+                    if x + offset >= row.len() || board[y][x + offset].value.to_string() == "#" {
                         break;
                     }
 
@@ -135,7 +135,7 @@ pub fn word_counter(board: &mut Vec<Vec<CrosswordBox>>) -> WordPlacements {
                 let mut offset = 1;
 
                 loop {
-                    if y + offset > board.len() || board[y + offset][x].value.to_string() == "#" {
+                    if y + offset >= board.len() || board[y + offset][x].value.to_string() == "#" {
                         break;
                     }
 

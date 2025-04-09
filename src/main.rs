@@ -6,6 +6,7 @@ pub mod tgg_file;
 use crate::creator::generate_crossword;
 use crate::setup::ask_for_config;
 use tgg::crossword::CrosswordBox;
+use tgg_file::save;
 
 fn main() {
     // TODO:
@@ -18,4 +19,7 @@ fn main() {
     let config = ask_for_config();
 
     let board: Vec<Vec<CrosswordBox>> = generate_crossword(config);
+
+    //TODO: ask for save later
+    save(board);
 }
