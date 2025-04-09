@@ -2,8 +2,8 @@ use crate::{display::board::print_board, setup::Config};
 use tgg::crossword::{CrosswordBox, CrosswordBoxValue};
 
 pub enum Direction {
+    Across,
     Down,
-    Up,
 }
 
 pub struct Position {
@@ -17,14 +17,45 @@ impl Position {
     }
 }
 
-pub fn word_counter(board: &mut Vec<Vec<CrosswordBox>>) {
+pub struct WordPlacement {
+    pub position: Position,
+    pub length: u8,
+    pub direction: Direction,
+    pub number: u8,
+}
+
+impl WordPlacement {
+    pub fn new(position: Position, length: u8, direction: Direction, number: u8) -> WordPlacement {
+        WordPlacement {
+            position,
+            length,
+            direction,
+            number,
+        }
+    }
+}
+
+pub struct WordPlacements {
+    pub horizontal: Vec<WordPlacement>,
+    pub vertical: Vec<WordPlacement>,
+}
+
+impl WordPlacements {
+    pub fn new(horizontal: Vec<WordPlacement>, vertical: Vec<WordPlacement>) -> WordPlacements {
+        WordPlacements {
+            horizontal,
+            vertical,
+        }
+    }
+}
+
+pub fn word_counter(board: &mut Vec<Vec<CrosswordBox>>) -> WordPlacements {
     let mut horizontal_word_number: u8 = 1;
     let mut vertical_word_number: u8 = 1;
 
-    let mut horizontal_words = 0;
-    let mut vertical_words = 0;
+    let mut horizontal: Vec<WordPlacement> = Vec::new();
+    let mut vertical: Vec<WordPlacement> = Vec::new();
 
-    //TODO: do without clone
     for (y, row) in board.clone().iter().enumerate() {
         for (x, crossword_box) in row.iter().enumerate() {
             match crossword_box.value {
@@ -69,7 +100,12 @@ pub fn word_counter(board: &mut Vec<Vec<CrosswordBox>>) {
                 }
 
                 if !full {
-                    horizontal_words += 1;
+                    horizontal.push(WordPlacement::new(
+                        Position::new(x, y),
+                        word_len,
+                        Direction::Across,
+                        horizontal_word_number - 1,
+                    ));
                 }
             }
 
@@ -113,15 +149,41 @@ pub fn word_counter(board: &mut Vec<Vec<CrosswordBox>>) {
                 }
 
                 if !full {
-                    vertical_words += 1;
+                    vertical.push(WordPlacement::new(
+                        Position::new(x, y),
+                        word_len,
+                        Direction::Down,
+                        vertical_word_number - 1,
+                    ));
                 }
             }
         }
     }
+
+    WordPlacements {
+        horizontal,
+        vertical,
+    }
 }
 
 pub fn generate_crossword(mut config: Config) -> Vec<Vec<CrosswordBox>> {
-    word_counter(&mut config.board);
+    let word_placements: WordPlacements = word_counter(&mut config.board);
+
+    println!("Horizontal: ");
+    for word in word_placements.horizontal {
+        println!(
+            "{}: ({}, {}), len: {}",
+            word.number, word.position.x, word.position.y, word.length
+        );
+    }
+
+    println!("Vertical: ");
+    for word in word_placements.vertical {
+        println!(
+            "{}: ({}, {}), len: {}",
+            word.number, word.position.x, word.position.y, word.length
+        );
+    }
 
     print_board(&config.board, None, None);
 
