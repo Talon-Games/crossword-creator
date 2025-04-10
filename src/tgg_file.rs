@@ -1,34 +1,89 @@
+use crate::display::refresh_display;
+use crossterm::{
+    event::{read, Event, KeyCode, KeyEvent, KeyEventKind},
+    terminal,
+};
 use tgg::crossword::{CrosswordBox, CrosswordBoxValue, CrosswordClue};
 use tgg::TggFile;
 
 use crate::display::board::print_board_with_numbers;
 
 pub struct Clues {
-    pub horizontal_clues: Vec<CrosswordClue>,
-    pub vertical_clues: Vec<CrosswordClue>,
+    pub horizontal: Vec<CrosswordClue>,
+    pub vertical: Vec<CrosswordClue>,
 }
 
 impl Clues {
     pub fn new(horizontal_clues: Vec<CrosswordClue>, vertical_clues: Vec<CrosswordClue>) -> Clues {
         Clues {
-            horizontal_clues,
-            vertical_clues,
+            horizontal: horizontal_clues,
+            vertical: vertical_clues,
+        }
+    }
+
+    pub fn display(&mut self, current_clue: usize) {
+        println!("Horizontal:");
+        for (i, clue) in self.horizontal.iter().enumerate() {
+            if i == current_clue {
+                print!("[");
+            }
+            print!(
+                "{}. {}",
+                clue.number,
+                if clue.value == "" { "___" } else { &clue.value }
+            );
+
+            if i == current_clue {
+                print!("]");
+            };
+
+            print!("\n");
+        }
+        println!("Vertical:");
+        for (i, clue) in self.vertical.iter().enumerate() {
+            if i + self.horizontal.len() == current_clue {
+                print!("[");
+            }
+            print!(
+                "{}. {}",
+                clue.number,
+                if clue.value == "" { "___" } else { &clue.value }
+            );
+
+            if i + self.horizontal.len() == current_clue {
+                print!("]");
+            };
+
+            print!("\n");
         }
     }
 }
 
 pub fn save(board: Vec<Vec<CrosswordBox>>) {
-    get_clues(&board);
-    create_file(board);
+    let clues = get_clues(&board);
+    let file = match create_file(board, clues) {
+        Ok(file) => file,
+        Err(err) => {
+            eprintln!("{}", err);
+            std::process::exit(1);
+        }
+    };
+
+    println!("{:?}", file.to_bytes());
+
+    match std::fs::write("./file.tgg", file.to_bytes()) {
+        Ok(()) => (),
+        Err(err) => {
+            eprintln!("{}", err);
+            std::process::exit(1);
+        }
+    }
 }
 
-fn create_file(board: Vec<Vec<CrosswordBox>>) {
+fn create_file(board: Vec<Vec<CrosswordBox>>, clues: Clues) -> Result<TggFile, &'static str> {
     let title = "Test Crossword";
     let description = "Test Description";
     let author = "Maksim Straus";
-
-    let horizontal_clues: Vec<CrosswordClue> = Vec::new();
-    let vertical_clues: Vec<CrosswordClue> = Vec::new();
 
     let file = TggFile::custom_crossword(
         title,
@@ -36,31 +91,89 @@ fn create_file(board: Vec<Vec<CrosswordBox>>) {
         author,
         board.len() as u8,
         board[0].len() as u8,
-        horizontal_clues,
-        vertical_clues,
+        clues.horizontal,
+        clues.vertical,
         board,
     );
+
+    file
 }
 
-fn get_clues(board: &Vec<Vec<CrosswordBox>>) {
-    println!("");
+fn get_clues(board: &Vec<Vec<CrosswordBox>>) -> Clues {
     print_board_with_numbers(&board);
-    let clues = create_default_clues(board);
-    println!("Horizontal:");
-    for clue in clues.horizontal_clues {
-        println!("{}. ___", clue.number);
+    println!("");
+    let mut clues = create_default_clues(board);
+    let mut refresh_amount = 2 + clues.horizontal.len() + clues.vertical.len();
+    let mut current_clue = 0;
+    let mut editing = false;
+    println!("↑ ↓: Move Selector | Space: Edit Clue | Enter: Save All");
+    clues.display(current_clue);
+    loop {
+        terminal::enable_raw_mode().expect("Failed to enable raw mode");
+        let event = read().unwrap();
+        match event {
+            Event::Key(KeyEvent {
+                code,
+                kind: KeyEventKind::Press,
+                ..
+            }) => match code {
+                KeyCode::Esc => {
+                    if editing {
+                        editing = false;
+                        refresh_amount -= 2;
+                        continue;
+                    } else {
+                        terminal::disable_raw_mode().expect("Failed to disable raw mode");
+                        println!("Quitting...");
+                        std::process::exit(0);
+                    }
+                }
+                KeyCode::Enter => {
+                    terminal::disable_raw_mode().expect("Failed to disable raw mode");
+                    refresh_display(refresh_amount as i32 + 1);
+                    break;
+                }
+                KeyCode::Up => {
+                    if editing {
+                        continue;
+                    };
+                    if current_clue == 0 {
+                        current_clue = clues.horizontal.len() + clues.vertical.len() - 1;
+                    } else {
+                        current_clue -= 1;
+                    }
+                }
+                KeyCode::Down => {
+                    if editing {
+                        continue;
+                    };
+                    if current_clue == clues.horizontal.len() + clues.vertical.len() - 1 {
+                        current_clue = 0;
+                    } else {
+                        current_clue += 1;
+                    }
+                }
+                KeyCode::Char(' ') => {
+                    editing = true;
+                    refresh_amount += 2;
+                }
+                _ => {}
+            },
+            _ => {}
+        }
+        terminal::disable_raw_mode().expect("Failed to disable raw mode");
+        refresh_display(refresh_amount as i32);
+        clues.display(current_clue);
+        if editing {
+            println!("asdf");
+            println!("asdf");
+        }
     }
-    println!("Vertical:");
-    for clue in clues.vertical_clues {
-        println!("{}. ___", clue.number);
-    }
-    // create ui with numbers words and clues
+
+    clues
 }
 
 fn create_default_clues(board: &Vec<Vec<CrosswordBox>>) -> Clues {
-    let mut horizontal_word_number: u8 = 1;
-    let mut vertical_word_number: u8 = 1;
-
     let mut horizontal_clues: Vec<CrosswordClue> = Vec::new();
     let mut vertical_clues: Vec<CrosswordClue> = Vec::new();
 
@@ -77,14 +190,8 @@ fn create_default_clues(board: &Vec<Vec<CrosswordBox>>) -> Clues {
                     && (x != row.len() - 1 && board[y][x + 1].value.to_string() != "#"))
             {
                 if board[y][x].number != 0 {
-                    if horizontal_word_number <= vertical_word_number {
-                        horizontal_word_number = vertical_word_number;
-                    }
-
-                    horizontal_clues.push(CrosswordClue::new(horizontal_word_number, ""));
+                    horizontal_clues.push(CrosswordClue::new(board[y][x].number, ""));
                 }
-
-                horizontal_word_number += 1;
             }
 
             // Vertical Words
@@ -93,14 +200,8 @@ fn create_default_clues(board: &Vec<Vec<CrosswordBox>>) -> Clues {
                     && (y != board.len() - 1 && board[y + 1][x].value.to_string() != "#")
             {
                 if board[y][x].number != 0 {
-                    if vertical_word_number <= horizontal_word_number {
-                        vertical_word_number = horizontal_word_number;
-                    }
-
-                    vertical_clues.push(CrosswordClue::new(vertical_word_number, ""));
+                    vertical_clues.push(CrosswordClue::new(board[y][x].number, ""));
                 }
-
-                vertical_word_number += 1;
             }
         }
     }

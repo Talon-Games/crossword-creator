@@ -40,8 +40,8 @@ impl Config {
 }
 
 pub fn ask_for_config() -> Config {
-    let width = NumberInput::new().message("Width: ").min(2).max(50).ask();
-    let height = NumberInput::new().message("Height: ").min(2).max(50).ask();
+    let width = NumberInput::new().message("Width: ").min(3).max(50).ask();
+    let height = NumberInput::new().message("Height: ").min(3).max(50).ask();
 
     let mut config = Config::new(width, height);
 
@@ -71,8 +71,8 @@ fn ask_for_board_template(config: &mut Config) {
     let mut selector_x: usize = (config.width / 2) as usize;
     let mut selector_y: usize = (config.height / 2) as usize;
 
-    println!("Press enter to toggle a black box");
-    println!("Press \"s\" to save");
+    println!("Press \"Space\" to toggle a box");
+    println!("Press \"Enter\" to save");
 
     let rows = print_board_with_selector(&config.board, Some(selector_x), Some(selector_y));
     let full_clear = rows + 2;
