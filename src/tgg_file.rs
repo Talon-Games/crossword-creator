@@ -8,6 +8,8 @@ use tgg::TggFile;
 
 use crate::display::board::print_board_with_numbers;
 
+use crate::display::text_input::TextInput;
+
 pub struct Clues {
     pub horizontal: Vec<CrosswordClue>,
     pub vertical: Vec<CrosswordClue>,
@@ -118,15 +120,9 @@ fn get_clues(board: &Vec<Vec<CrosswordBox>>) -> Clues {
                 ..
             }) => match code {
                 KeyCode::Esc => {
-                    if editing {
-                        editing = false;
-                        refresh_amount -= 2;
-                        continue;
-                    } else {
-                        terminal::disable_raw_mode().expect("Failed to disable raw mode");
-                        println!("Quitting...");
-                        std::process::exit(0);
-                    }
+                    terminal::disable_raw_mode().expect("Failed to disable raw mode");
+                    println!("Quitting...");
+                    std::process::exit(0);
                 }
                 KeyCode::Enter => {
                     terminal::disable_raw_mode().expect("Failed to disable raw mode");
@@ -154,8 +150,25 @@ fn get_clues(board: &Vec<Vec<CrosswordBox>>) -> Clues {
                     }
                 }
                 KeyCode::Char(' ') => {
-                    editing = true;
-                    refresh_amount += 2;
+                    terminal::disable_raw_mode().expect("Failed to disable raw mode");
+                    let current_text = if current_clue < clues.horizontal.len() {
+                        clues.horizontal[current_clue].value.as_str()
+                    } else {
+                        clues.vertical[current_clue - clues.horizontal.len()]
+                            .value
+                            .as_str()
+                    };
+
+                    let clue = TextInput::new()
+                        .message("Clue: ")
+                        .set_text(current_text)
+                        .ask();
+
+                    if current_clue < clues.horizontal.len() {
+                        clues.horizontal[current_clue].value = clue
+                    } else {
+                        clues.vertical[current_clue - clues.horizontal.len()].value = clue;
+                    };
                 }
                 _ => {}
             },
@@ -164,10 +177,6 @@ fn get_clues(board: &Vec<Vec<CrosswordBox>>) -> Clues {
         terminal::disable_raw_mode().expect("Failed to disable raw mode");
         refresh_display(refresh_amount as i32);
         clues.display(current_clue);
-        if editing {
-            println!("asdf");
-            println!("asdf");
-        }
     }
 
     clues

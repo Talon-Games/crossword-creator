@@ -1,6 +1,7 @@
 pub mod board;
 pub mod choice;
 pub mod number_input;
+pub mod text_input;
 
 use crossterm::{cursor, terminal, ExecutableCommand};
 use std::io;
