@@ -105,9 +105,8 @@ fn get_clues(board: &Vec<Vec<CrosswordBox>>) -> Clues {
     print_board_with_numbers(&board);
     println!("");
     let mut clues = create_default_clues(board);
-    let mut refresh_amount = 2 + clues.horizontal.len() + clues.vertical.len();
+    let refresh_amount = 2 + clues.horizontal.len() + clues.vertical.len();
     let mut current_clue = 0;
-    let mut editing = false;
     println!("↑ ↓: Move Selector | Space: Edit Clue | Enter: Save All");
     clues.display(current_clue);
     loop {
@@ -130,9 +129,6 @@ fn get_clues(board: &Vec<Vec<CrosswordBox>>) -> Clues {
                     break;
                 }
                 KeyCode::Up => {
-                    if editing {
-                        continue;
-                    };
                     if current_clue == 0 {
                         current_clue = clues.horizontal.len() + clues.vertical.len() - 1;
                     } else {
@@ -140,9 +136,6 @@ fn get_clues(board: &Vec<Vec<CrosswordBox>>) -> Clues {
                     }
                 }
                 KeyCode::Down => {
-                    if editing {
-                        continue;
-                    };
                     if current_clue == clues.horizontal.len() + clues.vertical.len() - 1 {
                         current_clue = 0;
                     } else {
