@@ -1,3 +1,5 @@
+use std::{io::Write, path::Path};
+
 use crate::display::refresh_display;
 use crossterm::{
     event::{read, Event, KeyCode, KeyEvent, KeyEventKind},
@@ -73,8 +75,39 @@ pub fn save(board: Vec<Vec<CrosswordBox>>) {
 
     println!("{:?}", file.to_bytes());
 
-    match std::fs::write("./file.tgg", file.to_bytes()) {
-        Ok(()) => (),
+    let path_str = TextInput::new().message("Path to output tgg file: ").ask();
+    let path = Path::new(&path_str);
+
+    if path.exists() {
+        println!("A file already exists at the output path, would you like to delete its content and proceed? [y/N]");
+        let mut input = String::new();
+        print!("> ");
+        input.clear();
+        std::io::stdout().flush().unwrap();
+        std::io::stdin().read_line(&mut input).unwrap();
+        let input = input.trim();
+        if input == "y" || input == "Y" {
+            println!("Deleting existing file");
+
+            match std::fs::remove_file(path) {
+                Ok(_) => {
+                    println!("Deleted existing file");
+                }
+                Err(err) => {
+                    eprintln!("Failed to delete file: {}", err);
+                    std::process::exit(1);
+                }
+            }
+        } else {
+            println!("Canceling File Save...");
+            return;
+        }
+    }
+
+    match std::fs::write(path, file.to_bytes()) {
+        Ok(()) => {
+            println!("Saved file to {}", path_str);
+        }
         Err(err) => {
             eprintln!("{}", err);
             std::process::exit(1);
@@ -83,11 +116,11 @@ pub fn save(board: Vec<Vec<CrosswordBox>>) {
 }
 
 fn create_file(board: Vec<Vec<CrosswordBox>>, clues: Clues) -> Result<TggFile, &'static str> {
-    let title = "Test Crossword";
-    let description = "Test Description";
-    let author = "Maksim Straus";
+    let title = &TextInput::new().message("Title: ").ask();
+    let description = &TextInput::new().message("Description: ").ask();
+    let author = &TextInput::new().message("Author: ").ask();
 
-    let file = TggFile::custom_crossword(
+    TggFile::custom_crossword(
         title,
         description,
         author,
@@ -96,9 +129,7 @@ fn create_file(board: Vec<Vec<CrosswordBox>>, clues: Clues) -> Result<TggFile, &
         clues.horizontal,
         clues.vertical,
         board,
-    );
-
-    file
+    )
 }
 
 fn get_clues(board: &Vec<Vec<CrosswordBox>>) -> Clues {
