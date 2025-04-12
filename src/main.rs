@@ -1,6 +1,8 @@
+pub mod cli;
 pub mod creator;
 pub mod display;
 pub mod setup;
+pub mod styles;
 pub mod tgg_file;
 
 use crate::creator::generate_crossword;
@@ -9,8 +11,10 @@ use tgg::crossword::CrosswordBox;
 use tgg_file::save;
 
 fn main() {
-    // TODO:
-    // - add an option to load from existing file
+    // take in CLI options
+    // - create: starts up current creation mode
+    // - edit: takes in a file path and allows for editing of clues and board
+    // - analyze: gives all the information on the crossword
     println!("Welcome to crossword creator!");
     println!("Made by: Maksim Straus");
     println!("https://github.com/cqb13");
@@ -20,6 +24,5 @@ fn main() {
 
     let board: Vec<Vec<CrosswordBox>> = generate_crossword(config);
 
-    //TODO: ask for save later
     save(board);
 }
