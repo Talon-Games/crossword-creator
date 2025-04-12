@@ -163,9 +163,9 @@ checksum = "8917285742e9f3e1683f0a9c4e6b57960b7314d0b08d30d1ecd426713ee2eee9"
 
 [[package]]
 name = "tgg"
-version = "0.1.1"
+version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6b02fb4da608203b9faf452ad830f3dfc729f0a4a63484face8f768f8a74e8f6"
+checksum = "54f2f158b1fa14d41307fc7b4421deba5025d190ed2643379a05bd340ce37447"
 
 [[package]]
 name = "wasi"

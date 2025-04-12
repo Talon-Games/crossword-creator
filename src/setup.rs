@@ -132,7 +132,7 @@ fn ask_for_board_template(config: &mut Config) {
                 KeyCode::Char(char) => {
                     if char >= 'a' && char <= 'z' {
                         config.board[selector_y][selector_x].value =
-                            CrosswordBoxValue::Letter(char);
+                            CrosswordBoxValue::Letter(char.to_ascii_uppercase());
                     }
                 }
                 _ => {}

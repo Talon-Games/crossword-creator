@@ -2,7 +2,15 @@
 name = "crossword-creator"
 version = "0.1.0"
 edition = "2021"
+authors = ["cqb13 <cqb13.dev@gmail.com>"]
+license = "MIT"
+description = "A CLI for building crosswords"
+readme = "README.md"
+homepage = "https://github.com/Talon-Games/crossword-creator"
+repository = "https://github.com/Talon-Games/crossword-creator"
+keywords = ["cli", "tgg"]
+categories = ["command-line-utilities"]
 
 [dependencies]
 crossterm = "0.27.0"
-tgg = "0.1.0"
+tgg = "0.1.4"

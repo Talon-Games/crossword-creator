@@ -115,7 +115,7 @@ pub fn save(board: Vec<Vec<CrosswordBox>>) {
     }
 }
 
-fn create_file(board: Vec<Vec<CrosswordBox>>, clues: Clues) -> Result<TggFile, &'static str> {
+fn create_file(board: Vec<Vec<CrosswordBox>>, clues: Clues) -> Result<TggFile, tgg::Error> {
     let title = &TextInput::new().message("Title: ").ask();
     let description = &TextInput::new().message("Description: ").ask();
     let author = &TextInput::new().message("Author: ").ask();
