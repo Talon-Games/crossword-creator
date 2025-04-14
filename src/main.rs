@@ -8,13 +8,12 @@ pub mod styles;
 pub mod tgg_file;
 
 use crate::commands::create::create;
+use crate::commands::edit::edit;
 use crate::commands::inspect::inspect;
 pub use crate::error::Error;
 use cli::{Cli, CmdOption, Command};
 
 fn main() {
-    //TODO: take in CLI options
-    // - edit: takes in a file path and allows for editing of clues and board
     let cli = Cli::new()
         .with_command(Command::new("help", "Prints help information").with_option(
             CmdOption::new("command", "COMMAND", "The command you want help with").optional(),
@@ -58,7 +57,11 @@ fn main() {
         "create" => {
             create();
         }
-        "edit" => {}
+        "edit" => {
+            let path = command.get_option("input").throw_if_none();
+
+            edit(path);
+        }
         "inspect" => {
             let path = command.get_option("input").throw_if_none();
 

@@ -1,5 +1,6 @@
 use std::{io::Write, path::Path};
 
+use crate::display::choice::Choice;
 use crate::display::refresh_display;
 use crossterm::{
     event::{read, Event, KeyCode, KeyEvent, KeyEventKind},
@@ -64,7 +65,8 @@ impl Clues {
 }
 
 pub fn save(board: Vec<Vec<CrosswordBox>>) {
-    let clues = get_clues(&board);
+    let clues = create_default_clues(&board);
+    let clues = edit_clues(&board, clues);
     let file = match create_file(board, clues) {
         Ok(file) => file,
         Err(err) => {
@@ -132,10 +134,9 @@ fn create_file(board: Vec<Vec<CrosswordBox>>, clues: Clues) -> Result<TggFile, t
     )
 }
 
-fn get_clues(board: &Vec<Vec<CrosswordBox>>) -> Clues {
+pub fn edit_clues(board: &Vec<Vec<CrosswordBox>>, mut clues: Clues) -> Clues {
     print_board_with_numbers(&board);
     println!("");
-    let mut clues = create_default_clues(board);
     let refresh_amount = 2 + clues.horizontal.len() + clues.vertical.len();
     let mut current_clue = 0;
     println!("↑ ↓: Move Selector | Space: Edit Clue | Enter: Save All");
@@ -156,8 +157,15 @@ fn get_clues(board: &Vec<Vec<CrosswordBox>>) -> Clues {
                 }
                 KeyCode::Enter => {
                     terminal::disable_raw_mode().expect("Failed to disable raw mode");
-                    refresh_display(refresh_amount as i32 + 1);
-                    break;
+                    let is_sure = Choice::new()
+                        .message("Are you sure you want to continue?")
+                        .ask();
+                    if is_sure {
+                        refresh_display(refresh_amount as i32 + 1);
+                        break;
+                    } else {
+                        continue;
+                    }
                 }
                 KeyCode::Up => {
                     if current_clue == 0 {

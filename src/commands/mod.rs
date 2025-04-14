@@ -1,24 +1,49 @@
+use crate::prints;
 use crate::Error;
 use std::io::Read;
 use std::path::{Path, PathBuf};
+use tgg::{Game, TggFile};
 
 pub mod create;
+pub mod edit;
 pub mod inspect;
 
-fn load_file(path: PathBuf) -> Result<Vec<u8>, Error> {
-    let mut file = match std::fs::File::open(path) {
-        Ok(file) => file,
-        Err(err) => return Err(Error::IO(err)),
+fn load_file(raw_path: String) -> TggFile {
+    let path = match validate_path(raw_path) {
+        Ok(path) => path,
+        Err(err) => {
+            eprintln!("{}", err);
+            std::process::exit(1);
+        }
     };
 
-    let mut buffer = Vec::new();
+    let buffer = match load_file_data(path) {
+        Ok(buffer) => buffer,
+        Err(err) => {
+            eprintln!("{}", err);
+            std::process::exit(1);
+        }
+    };
 
-    match file.read_to_end(&mut buffer) {
-        Ok(_) => {}
-        Err(err) => return Err(Error::IO(err)),
-    }
+    let file = match TggFile::from_bytes(buffer) {
+        Ok(file) => file,
+        Err(err) => {
+            eprintln!("{}", err);
+            std::process::exit(1);
+        }
+    };
 
-    Ok(buffer)
+    match file.get_game() {
+        Game::Crossword => {}
+        _ => {
+            prints!(
+                "[color:bright-red]Error:[color:reset] The game file loaded is not a crossword"
+            );
+            std::process::exit(1);
+        }
+    };
+
+    file
 }
 
 fn validate_path(raw_path: String) -> Result<PathBuf, Error> {
@@ -37,4 +62,20 @@ fn validate_path(raw_path: String) -> Result<PathBuf, Error> {
     }
 
     return Ok(path);
+}
+
+fn load_file_data(path: PathBuf) -> Result<Vec<u8>, Error> {
+    let mut file = match std::fs::File::open(path) {
+        Ok(file) => file,
+        Err(err) => return Err(Error::IO(err)),
+    };
+
+    let mut buffer = Vec::new();
+
+    match file.read_to_end(&mut buffer) {
+        Ok(_) => {}
+        Err(err) => return Err(Error::IO(err)),
+    }
+
+    Ok(buffer)
 }
