@@ -13,7 +13,6 @@ pub struct Config {
     pub height: i32,
     pub use_english_words: bool,
     pub use_latin_words: bool,
-    pub only_words_with_defs: bool,
     pub board: Vec<Vec<CrosswordBox>>,
 }
 
@@ -33,7 +32,6 @@ impl Config {
             height,
             use_english_words: true,
             use_latin_words: false,
-            only_words_with_defs: true,
             board,
         }
     }
@@ -55,13 +53,8 @@ pub fn ask_for_config() -> Config {
         std::process::exit(1);
     }
 
-    let only_words_with_defs = Choice::new()
-        .message("Only use words with definitions?")
-        .ask();
-
     config.use_english_words = use_english_words;
     config.use_latin_words = use_latin_words;
-    config.only_words_with_defs = only_words_with_defs;
 
     ask_for_board_template(&mut config);
     return config;
