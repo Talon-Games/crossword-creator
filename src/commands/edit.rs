@@ -1,21 +1,18 @@
 use crate::display::choice::Choice;
 use crate::display::refresh_display;
-use crate::tgg_file::{edit_clues, Clues};
-use crate::{
-    commands::load_file,
-    display::board::{print_board, print_board_with_numbers},
-    prints,
-};
+use crate::tgg_file::{edit_board, edit_clues, Clues};
+use crate::{commands::load_file, prints};
 use crossterm::{
     event::{read, Event, KeyCode, KeyEvent, KeyEventKind},
     terminal,
 };
+use tgg::crossword::CrosswordData;
 use tgg::GameData;
 
 pub fn edit(raw_path: String) {
     let file = load_file(raw_path);
 
-    let game_data = match file.get_game_data() {
+    let mut game_data: CrosswordData = match file.get_game_data() {
         GameData::Crossword(game_data) => game_data,
         _ => {
             prints!(
@@ -33,6 +30,7 @@ pub fn edit(raw_path: String) {
     let mut is_board = true;
     if is_board {
         println!("[Edit Board] |  Edit Clues ");
+        edit_board(&mut game_data.crossword_data);
     } else {
         println!(" Edit Board  | [Edit Clues]");
     }
@@ -73,6 +71,7 @@ pub fn edit(raw_path: String) {
         refresh_display(1);
         if is_board {
             println!("[Edit Board] |  Edit Clues ");
+            edit_board(&mut game_data.crossword_data);
         } else {
             println!(" Edit Board  | [Edit Clues]");
             edit_clues(&game_data.crossword_data, &mut clues);

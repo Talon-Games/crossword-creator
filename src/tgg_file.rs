@@ -1,7 +1,7 @@
 use std::{io::Write, path::Path};
 
-use crate::display::choice::Choice;
 use crate::display::refresh_display;
+use crate::{creator::word_counter, display::choice::Choice};
 use crossterm::{
     event::{read, Event, KeyCode, KeyEvent, KeyEventKind},
     terminal,
@@ -10,6 +10,7 @@ use tgg::crossword::{CrosswordBox, CrosswordBoxValue, CrosswordClue};
 use tgg::TggFile;
 
 use crate::display::board::print_board_with_numbers;
+use crate::display::board::print_board_with_selector;
 
 use crate::display::text_input::TextInput;
 
@@ -168,6 +169,108 @@ fn create_default_clues(board: &Vec<Vec<CrosswordBox>>) -> Clues {
     }
 
     Clues::new(horizontal_clues, vertical_clues)
+}
+
+//TODO: use this in setup
+pub fn edit_board(board: &mut Vec<Vec<CrosswordBox>>) {
+    let height = board.len();
+    let width = board[0].len();
+    let mut selector_x: usize = width / 2;
+    let mut selector_y: usize = height / 2;
+
+    println!("Press \"Space\" to toggle a box");
+    println!("Press \"Enter\" to save");
+
+    let mut rows = print_board_with_numbers(board);
+    rows += print_board_with_selector(&board, Some(selector_x), Some(selector_y));
+    let full_clear = rows + 2;
+    loop {
+        terminal::enable_raw_mode().expect("Failed to enable raw mode");
+        let event = read().unwrap();
+        match event {
+            Event::Key(KeyEvent {
+                code,
+                kind: KeyEventKind::Press,
+                ..
+            }) => match code {
+                KeyCode::Esc => {
+                    terminal::disable_raw_mode().expect("Failed to disable raw mode");
+                    println!("Quitting...");
+                    std::process::exit(0);
+                }
+                KeyCode::Enter => {
+                    terminal::disable_raw_mode().expect("Failed to disable raw mode");
+                    refresh_display(full_clear);
+                    break;
+                }
+                KeyCode::Up => {
+                    if selector_y > 0 {
+                        selector_y -= 1;
+                    } else {
+                        selector_y = (height - 1) as usize;
+                    }
+                }
+                KeyCode::Down => {
+                    if selector_y < (height - 1) as usize {
+                        selector_y += 1;
+                    } else {
+                        selector_y = 0;
+                    }
+                }
+                KeyCode::Left => {
+                    if selector_x > 0 {
+                        selector_x -= 1;
+                    } else {
+                        selector_x = (width - 1) as usize;
+                    }
+                }
+                KeyCode::Right => {
+                    if selector_x < (width - 1) as usize {
+                        selector_x += 1;
+                    } else {
+                        selector_x = 0;
+                    }
+                }
+                KeyCode::Char(' ') => {
+                    match board[selector_y][selector_x].value {
+                        CrosswordBoxValue::Solid => {
+                            board[selector_y][selector_x].value = CrosswordBoxValue::Empty
+                        }
+                        _ => board[selector_y][selector_x].value = CrosswordBoxValue::Solid,
+                    };
+
+                    //TODO: get the new clues, pass in &mut clues here, merge between the new
+                    //required clues and the old ones
+                    clear_numbers(board);
+                    word_counter(board);
+                }
+                KeyCode::Char(char) => {
+                    if char >= 'a' && char <= 'z' {
+                        board[selector_y][selector_x].value =
+                            CrosswordBoxValue::Letter(char.to_ascii_uppercase());
+                    }
+
+                    clear_numbers(board);
+                    word_counter(board);
+                }
+                _ => {}
+            },
+            _ => {}
+        }
+        terminal::disable_raw_mode().expect("Failed to disable raw mode");
+        refresh_display(rows);
+
+        print_board_with_numbers(board);
+        print_board_with_selector(&board, Some(selector_x), Some(selector_y));
+    }
+}
+
+fn clear_numbers(board: &mut Vec<Vec<CrosswordBox>>) {
+    for row in board {
+        for item in row {
+            item.number = 0;
+        }
+    }
 }
 
 pub fn edit_clues(board: &Vec<Vec<CrosswordBox>>, clues: &mut Clues) {
