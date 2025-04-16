@@ -65,8 +65,8 @@ impl Clues {
 }
 
 pub fn save(board: Vec<Vec<CrosswordBox>>) {
-    let clues = create_default_clues(&board);
-    let clues = edit_clues(&board, clues);
+    let mut clues = create_default_clues(&board);
+    edit_clues(&board, &mut clues);
     let file = match create_file(board, clues) {
         Ok(file) => file,
         Err(err) => {
@@ -134,8 +134,44 @@ fn create_file(board: Vec<Vec<CrosswordBox>>, clues: Clues) -> Result<TggFile, t
     )
 }
 
-pub fn edit_clues(board: &Vec<Vec<CrosswordBox>>, mut clues: Clues) -> Clues {
-    print_board_with_numbers(&board);
+fn create_default_clues(board: &Vec<Vec<CrosswordBox>>) -> Clues {
+    let mut horizontal_clues: Vec<CrosswordClue> = Vec::new();
+    let mut vertical_clues: Vec<CrosswordClue> = Vec::new();
+
+    for (y, row) in board.iter().enumerate() {
+        for (x, crossword_box) in row.iter().enumerate() {
+            match crossword_box.value {
+                CrosswordBoxValue::Solid => continue,
+                _ => (),
+            };
+
+            // Horizontal Words
+            if x == 0
+                || (board[y][x - 1].value.to_string() == "#"
+                    && (x != row.len() - 1 && board[y][x + 1].value.to_string() != "#"))
+            {
+                if board[y][x].number != 0 {
+                    horizontal_clues.push(CrosswordClue::new(board[y][x].number, ""));
+                }
+            }
+
+            // Vertical Words
+            if y == 0
+                || board[y - 1][x].value.to_string() == "#"
+                    && (y != board.len() - 1 && board[y + 1][x].value.to_string() != "#")
+            {
+                if board[y][x].number != 0 {
+                    vertical_clues.push(CrosswordClue::new(board[y][x].number, ""));
+                }
+            }
+        }
+    }
+
+    Clues::new(horizontal_clues, vertical_clues)
+}
+
+pub fn edit_clues(board: &Vec<Vec<CrosswordBox>>, clues: &mut Clues) {
+    let height = print_board_with_numbers(&board);
     println!("");
     let refresh_amount = 2 + clues.horizontal.len() + clues.vertical.len();
     let mut current_clue = 0;
@@ -162,6 +198,7 @@ pub fn edit_clues(board: &Vec<Vec<CrosswordBox>>, mut clues: Clues) -> Clues {
                         .ask();
                     if is_sure {
                         refresh_display(refresh_amount as i32 + 1);
+                        refresh_display(height + 1);
                         break;
                     } else {
                         continue;
@@ -210,42 +247,4 @@ pub fn edit_clues(board: &Vec<Vec<CrosswordBox>>, mut clues: Clues) -> Clues {
         refresh_display(refresh_amount as i32);
         clues.display(current_clue);
     }
-
-    clues
-}
-
-fn create_default_clues(board: &Vec<Vec<CrosswordBox>>) -> Clues {
-    let mut horizontal_clues: Vec<CrosswordClue> = Vec::new();
-    let mut vertical_clues: Vec<CrosswordClue> = Vec::new();
-
-    for (y, row) in board.iter().enumerate() {
-        for (x, crossword_box) in row.iter().enumerate() {
-            match crossword_box.value {
-                CrosswordBoxValue::Solid => continue,
-                _ => (),
-            };
-
-            // Horizontal Words
-            if x == 0
-                || (board[y][x - 1].value.to_string() == "#"
-                    && (x != row.len() - 1 && board[y][x + 1].value.to_string() != "#"))
-            {
-                if board[y][x].number != 0 {
-                    horizontal_clues.push(CrosswordClue::new(board[y][x].number, ""));
-                }
-            }
-
-            // Vertical Words
-            if y == 0
-                || board[y - 1][x].value.to_string() == "#"
-                    && (y != board.len() - 1 && board[y + 1][x].value.to_string() != "#")
-            {
-                if board[y][x].number != 0 {
-                    vertical_clues.push(CrosswordClue::new(board[y][x].number, ""));
-                }
-            }
-        }
-    }
-
-    Clues::new(horizontal_clues, vertical_clues)
 }
