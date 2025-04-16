@@ -65,7 +65,7 @@ impl Clues {
     }
 }
 
-pub fn save(board: Vec<Vec<CrosswordBox>>) {
+pub fn begin_save(board: Vec<Vec<CrosswordBox>>) -> TggFile {
     let mut clues = create_default_clues(&board);
     edit_clues(&board, &mut clues);
     let file = match create_file(board, clues) {
@@ -76,6 +76,10 @@ pub fn save(board: Vec<Vec<CrosswordBox>>) {
         }
     };
 
+    file
+}
+
+pub fn save(file: TggFile) {
     println!("{:?}", file.to_bytes());
 
     let path_str = TextInput::new().message("Path to output tgg file: ").ask();
@@ -118,7 +122,7 @@ pub fn save(board: Vec<Vec<CrosswordBox>>) {
     }
 }
 
-fn create_file(board: Vec<Vec<CrosswordBox>>, clues: Clues) -> Result<TggFile, tgg::Error> {
+pub fn create_file(board: Vec<Vec<CrosswordBox>>, clues: Clues) -> Result<TggFile, tgg::Error> {
     let title = &TextInput::new().message("Title: ").ask();
     let description = &TextInput::new().message("Description: ").ask();
     let author = &TextInput::new().message("Author: ").ask();

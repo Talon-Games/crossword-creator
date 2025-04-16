@@ -1,6 +1,6 @@
 use crate::creator::generate_crossword;
 use crate::setup::ask_for_config;
-use crate::tgg_file::save;
+use crate::tgg_file::{begin_save, save};
 use tgg::crossword::CrosswordBox;
 
 pub fn create() {
@@ -8,5 +8,7 @@ pub fn create() {
 
     let board: Vec<Vec<CrosswordBox>> = generate_crossword(config);
 
-    save(board);
+    let file = begin_save(board);
+
+    save(file);
 }
