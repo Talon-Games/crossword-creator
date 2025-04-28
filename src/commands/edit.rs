@@ -6,7 +6,7 @@ use crossterm::{
     event::{read, Event, KeyCode, KeyEvent, KeyEventKind},
     terminal,
 };
-use tgg::crossword::CrosswordData;
+use tgg::crossword::{CrosswordClue, CrosswordData};
 use tgg::{GameData, TggFile};
 
 pub fn edit(raw_path: String) {
@@ -74,7 +74,36 @@ pub fn edit(raw_path: String) {
         refresh_display(1);
         if is_board {
             println!("[Edit Board] |  Edit Clues ");
-            edit_board(&mut game_data.crossword_data);
+            let new_clues = edit_board(&mut game_data.crossword_data);
+
+            for new_clue in new_clues.horizontal {
+                let mut included = false;
+                for clue in &clues.horizontal {
+                    if clue.number == new_clue.number {
+                        included = true;
+                    }
+                }
+
+                if !included {
+                    prints!("{}", new_clue.number);
+                    clues
+                        .horizontal
+                        .push(CrosswordClue::new(new_clue.number, ""));
+                }
+            }
+
+            for new_clue in new_clues.vertical {
+                let mut included = false;
+                for clue in &clues.vertical {
+                    if clue.number == new_clue.number {
+                        included = true;
+                    }
+                }
+
+                if !included {
+                    clues.vertical.push(CrosswordClue::new(new_clue.number, ""));
+                }
+            }
         } else {
             println!(" Edit Board  | [Edit Clues]");
             edit_clues(&game_data.crossword_data, &mut clues);
@@ -110,7 +139,7 @@ pub fn edit(raw_path: String) {
         Err(err) => {
             //TODO: put back up into loop for fix, give choice
             eprintln!("Failed to save changes: {}", err);
-            std::process::exit(0);
+            std::process::exit(1);
         }
     }
 }

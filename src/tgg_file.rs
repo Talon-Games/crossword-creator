@@ -1,5 +1,6 @@
 use std::{io::Write, path::Path};
 
+use crate::creator::{WordPlacement, WordPlacements};
 use crate::display::refresh_display;
 use crate::{creator::word_counter, display::choice::Choice};
 use crossterm::{
@@ -175,12 +176,12 @@ fn create_default_clues(board: &Vec<Vec<CrosswordBox>>) -> Clues {
     Clues::new(horizontal_clues, vertical_clues)
 }
 
-//TODO: use this in setup
-pub fn edit_board(board: &mut Vec<Vec<CrosswordBox>>) {
+pub fn edit_board(board: &mut Vec<Vec<CrosswordBox>>) -> Clues {
     let height = board.len();
     let width = board[0].len();
     let mut selector_x: usize = width / 2;
     let mut selector_y: usize = height / 2;
+    let mut clues: Clues = Clues::new(Vec::new(), Vec::new());
 
     println!("Press \"Space\" to toggle a box");
     println!("Press \"Enter\" to save");
@@ -205,7 +206,7 @@ pub fn edit_board(board: &mut Vec<Vec<CrosswordBox>>) {
                 KeyCode::Enter => {
                     terminal::disable_raw_mode().expect("Failed to disable raw mode");
                     refresh_display(full_clear);
-                    break;
+                    return clues;
                 }
                 KeyCode::Up => {
                     if selector_y > 0 {
@@ -243,10 +244,9 @@ pub fn edit_board(board: &mut Vec<Vec<CrosswordBox>>) {
                         _ => board[selector_y][selector_x].value = CrosswordBoxValue::Solid,
                     };
 
-                    //TODO: get the new clues, pass in &mut clues here, merge between the new
-                    //required clues and the old ones
                     clear_numbers(board);
                     word_counter(board);
+                    clues = create_default_clues(board);
                 }
                 KeyCode::Char(char) => {
                     if char >= 'a' && char <= 'z' {
@@ -256,6 +256,7 @@ pub fn edit_board(board: &mut Vec<Vec<CrosswordBox>>) {
 
                     clear_numbers(board);
                     word_counter(board);
+                    clues = create_default_clues(board);
                 }
                 _ => {}
             },
